@@ -1,0 +1,27 @@
+LDX #$05
+LDA #$61     		;97 b10
+ADC #$2D     		;45 b10
+BPL positive
+
+negative:
+STX $021F
+BRK
+
+positive:
+STX $0200
+BRK
+
+;;;;;;;;
+
+LDX #$05
+LDA #$61     		;97 b10
+ADC #$2D     		;45 b10
+BVS overflow
+
+overflow:
+STX $021F
+BRK
+
+noOverflow:
+STX $0200
+BRK

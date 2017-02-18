@@ -1,0 +1,84 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Constant values
+;
+define n 	   $0B		; Input "n" parameter
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Addresses
+;
+define ans_addr	   $00   	; Final answer will be stored at $0001. 
+define temp_addr   $02		; Temporary values can be stored at $0002.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Main Program
+; -- Push n onto the stack
+; -- Call function fib
+; -- The pop the result from the stack and store it in ans_addr
+LDA #n
+PHA 
+JSR fib
+PLA ; get result
+STA ans_addr
+BRK
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; fib(n) = fib(n-1) + fib(n-2)
+; fib(0) = 0
+; fib(1) = 1
+; 
+
+
+fib: 
+	TSX
+	TXA
+	CLC
+	ADC #$03
+	TAY
+	LDA $0100, Y	; accumulator now has "n"
+
+	CMP #02
+	BPL recurse	; check if n is 0 or 1
+	RTS
+
+recurse:
+
+	SEC
+	SBC #$01 ; fib(n-1)
+	PHA 
+	JSR fib
+	
+	TSX
+	TXA
+	CLC
+	ADC #$04 ; reload n 
+	TAY
+	LDA $0100, Y
+	
+
+	SEC
+	SBC #$02 ; fib(n-2)
+	PHA 
+	JSR fib
+
+	PLA ; pulls f(n-2)
+	STA temp_addr stores f(n-2)
+
+	PLA ; pulls f(n-1)
+	ADC	temp_addr	; add f(n-2) + f(n-1)
+
+	STA temp_addr
+
+	
+	; Calculate the address for the return value.
+	
+	TSX
+	TXA
+	CLC
+	ADC #$03
+	TAY
+	
+	; reload return value
+	LDA temp_addr
+	STA $0100, Y
+
+	RTS

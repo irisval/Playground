@@ -1,0 +1,95 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Constant values
+;
+define n 	   $03		; Input "n" parameter
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Addresses
+;
+define ans_addr	   $01   	; Final answer will be stored at $0001. 
+define temp_addr   $02		; Temporary values can be stored at $0002.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Main Program
+; -- Push n then y onto the stack
+; -- Call function e
+; -- The pop the result from the stack and store it in ans_addr
+LDA #n
+PHA 
+JSR g
+PLA ; get result
+STA ans_addr
+BRK
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; G(n) = 2(g(n-1) + n)
+; G(0) = 3
+; 
+
+g:
+
+	; Load "n" from sp + 3
+	TSX
+	TXA
+	CLC
+	ADC #$03
+	TAY
+	LDA $0100, Y
+
+	CMP #0
+	BEQ base_case
+
+	;; if acc > 0, then subtract 1 from n and then recursive
+	SEC
+	SBC #$01
+	PHA
+	JSR g
+
+	; pull result of call // result of g(n-1)
+	PLA ;; g(n-1) is @ accumulator
+
+	; g(n-1) + n
+	STA temp_addr  ;;; g(n-1) @ temp
+
+
+	TSX
+	TXA
+	CLC
+	ADC #$03
+	TAY
+
+	LDA $0100, Y    ; n is @ accumulator
+	CLC
+	ADC temp_addr    ; add n to g(n-1) which is @ accumulator
+
+	;; double the accumulator
+	STA temp_addr
+	ADC temp_addr
+
+	JMP return_result
+
+base_case:
+	; if g = 0, g(0) =  2
+	LDA #$03
+
+return_result:
+	; Store the return value in the temp_addr for safe keeping while
+	; we calculate the return address.
+	STA temp_addr
+
+	;
+	; Calculate the address for the return value.
+	;
+	TSX
+	TXA
+	CLC
+	ADC #$03
+	TAY
+
+	;
+	; Reload the return value from temp_addr and then write it into the stack
+	;
+	LDA temp_addr
+	STA $0100, Y
+
+	RTS

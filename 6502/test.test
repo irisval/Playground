@@ -1,0 +1,34 @@
+define sysLastKey	$ff:
+init:
+
+LDA sysLastKey
+SEC
+SBC #$30
+
+
+
+drawInitials:
+STA $0223
+STA $0224
+STA $0225
+STA $0226
+STA $0227
+STA $0228
+STA $0229
+
+STA $0246
+STA $0266
+STA $0286
+STA $02A6
+STA $02C6
+STA $02E6
+
+STA $0303
+STA $0304
+STA $0305
+STA $0306
+STA $0307
+STA $0308
+STA $0309
+
+JMP init
